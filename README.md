@@ -1,144 +1,161 @@
+#  CodeWise
 
-CodeWise- é uma ferramenta de linha de comando que utiliza o poder de modelos de linguagem (via CrewAI) para automatizar a criação e o enriquecimento de Pull Requests no GitHub.
+* Ferramenta instalável via pip que usa IA para analisar o código e automatizar a documentação de Pull Requests através de hooks do Git.
 
 ## Funcionalidades Principais
 - **Geração de Título:** Cria títulos de PR claros e concisos seguindo o padrão *Conventional Commits*.
 - **Geração de Descrição:** Escreve descrições detalhadas baseadas nas alterações do código.
-- **Análise Técnica:** Posta um comentário no PR com um resumo executivo das melhorias de arquitetura, aderência a princípios S.O.L.I.D. e outros pontos de qualidade.
-- **Automação Completa:** Integra-se ao seu fluxo de trabalho Git para rodar automaticamente a cada `git push`.
-
-## Pré-requisitos para serem instalados antes de tudo
-
-Antes de começar, garanta que você tenha as seguintes ferramentas instaladas em seu sistema:
-1.  **Python** (versão 3.11 ou superior)
-2.  **Git**
-3.  **GitHub CLI (`gh`)**: Após instalar, logue com sua conta do GitHub executando "gh auth login" no seu terminal. (só precisa uma vez no pc)
-
-==============================================================================================================================================================================
-# COMO INSTALAR
-
-## Após instalar os pré requisitos, aqui está como funciona a criação do ambiente virtual no repositório que for usar, para evitar conflitos das dependências de lib.
-
-1) - Você fará isso apenas uma vez no repositório novo --> Escolha um repositório git já configurado, abra o terminal na raiz e comece:
-
-# Crie e Utilize um Ambiente Virtual 
-Para evitar conflitos com outros projetos Python, é altamente recomendado usar um ambiente virtual. Pense nisso apenas para este projeto, mantendo seu sistema principal limpo.
-
-1.1. Para Criar o Ambiente:
-Execute este comando uma única vez. Ele cria uma pasta chamada .venv com uma instalação limpa do Python dentro.
-
-py -m venv .venv / python3 -m venv .venv (Linux)
-
-1.2. Para Ativar o Ambiente:
-Sempre que for trabalhar no projeto, você precisa ativar o ambiente. Abra o powershell na pasta que instalou o .venv.
-
-Pode ser que haja erro de execução com o próximo comando devido a a falta permissões: 
-*execute antes: "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser"*
-
-.\.venv\Scripts\activate ou  source venv/bin/activate (Linux)
-
-Você saberá que funcionou porque o início da linha do seu terminal mudará, mostrando (.venv) antes do caminho ou o nome que foi escolhido.
-
-1.3. Para Desativar o Ambiente :
-
-Quando terminar de usar, você pode desativar o ambiente simplesmente digitando:
-
-deactivate
-
-O (.venv) desaparecerá do seu terminal, indicando que você voltou ao seu sistema normal sem a lib.
-
-=========================================================================================================================================================================================
-
-Para cada repositório Git em que você desejar usar a automação, basta fazer uma configuração inicial.
-
-## **Passo 1: vá até o seu Repositório**
-
-# Exemplo: configurando para o projeto C_lib
-cd /caminho/para/seu/C_lib
-
-**Instale a lib com o comando "pip install codewise" ou "py -m pip install codewise" (pode demorar um pouco aqui)**
-
-após instalar a lib, você pode confirmar se está tudo certo com o comando codewise-help!
-
-depois disso basta apenas ativar os pré-hooks automatizados com o comando codewise-init --all e pronto
-
-**Passo 2: Ative a Automação**
-
-# Para ativar AMBAS as automações 
-**codewise-init --all**
-
-Você verá uma mensagem de sucesso confirmando que a automação está ativa.
-*(**Opcional:** use o comando com `--commit` para ativar apenas a análise rápida ou `--push` para ativar apenas a automação de PR).*
-
-Após estes passos, a ferramenta estará instalada e pronta para ser configurada em qualquer um dos seus projetos 
-(idealmente sempre crie o ambiente virtual na pasta raiz toda vez que for criar um repositório novo para usar a ferramenta e evitar conflitos).
-=========================================================================================================================================================================================
-# CONFIG DO .ENV no repositório
-
- **Configuração obrigatória**
-
-Antes de usar o CodeWise, você precisa configurar sua chave da API do Google Gemini.
-
-1. No repositório que você está desenvolvendo, crie um arquivo chamado `.env`
-2. Copie e cole e de um CTRL+S para salvar:
-
-GEMINI_API_KEY=sua-chave do gemini
-MODEL_NAME=gemini/gemini-2.0-flash
-
-Você pode criar esse arquivo com:
-
-- Windows:
-
-  notepad .env  
-
--Linux/macOS:
-
-touch .env && nano .env
-
-3. Após salvar, está tudo pronto. Considerando que seu novo repositório já está corretamente configurado com as branchs para PR sem conter apenas a default (main/master)
-=========================================================================================================================================================================================
-
-## DICAS : se quiser criar um novo repositório na máquina pelo prompt o gh ajuda com alguns comandos também :
-
--mkdir MeuNovoProjeto 
-
--cd MeuNovoProjeto
-
--git init
-
--gh repo create MeuNovoProjeto --public --source=. --remote=origin
-
--(Crie seu primeiro arquivo, ex: README.md) echo > README.md
-
--git add .
-
--git commit -m "Primeiro commit"
-
--git push --set-upstream origin main (ou master, dependendo do seu Git)
-
--nova branch: git checkout -b nome-da-branch enviar para remoto: git push -u origin nome-da-branch
-
-=========================================================================================================================================================================================
-
-## Fluxo de Trabalho do Dia a Dia
-
-1.  Trabalhe normalmente em uma branch separada (ex: `minha-feature`).
-2.  Adicione suas alterações para o próximo commit:
-    ```
-    git add .
-    ```
-3.  Faça o commit:
-    ```
-    git commit -m "feat: implementa novo recurso X"
-    ```
-    Neste momento, o **hook `pre-commit` será ativado**. Você verá a análise rápida do `codewise-lint` aparecer no seu terminal com sugestões de melhoria antes mesmo de o commit ser finalizado.
-
-4.  Envie suas alterações para o GitHub:
-    ```
-    git push
-    ```
- se for a primeira vez use com --no-verify para não usar o programa ainda! (git push origin master --no-verify) (git push --set-upstream origin teste )
-    Agora, o **hook `pre-push` será ativado**. O `codewise-pr` irá criar ou atualizar seu Pull Request no GitHub com título, descrição e um comentário de análise técnica com sugestões e melhorias, tudo gerado por IA.
+- **Análise Técnica:** Posta um comentário no PR com um resumo executivo de melhorias de arquitetura, aderência a princípios S.O.L.I.D. e outros pontos de qualidade.
+- **Automação com hooks:** Integra-se ao seu fluxo de trabalho Git para rodar automaticamente a cada `git commit` e `git push`.
 
 ---
-*Este projeto foi desenvolvido como uma ferramenta para otimizar o processo de code review e documentação de software.*
+
+## Guia de Instalação e Primeiro Uso
+
+### Pré-requisitos (Instalar antes de tudo)
+
+Antes de começar, garanta que você tenha as seguintes ferramentas instaladas em seu sistema:
+
+1.  **Python** (versão 3.11 ou superior).
+2.  **Git**.
+3.  **GitHub CLI (`gh`)**: Após instalar, logue com sua conta do GitHub executando `gh auth login` no seu terminal (só precisa fazer isso uma vez por PC).
+---
+
+# Resumo dos passos que serão melhor detalhados:
+
+1. **Logue com seu gh cli no pc que for usar.**
+2. **Crie o ambiente virtual no repositório que irá usar a ferramenta**
+3. **Crie o arquivo .env para configurar sua key do gemini**
+4. **Instale a lib do codewise.**
+5. **Use o comando para ativar a automação de hooks.**
+ 
+
+
+## Guia de Instalação 
+Siga estes passos para instalar e configurar o CodeWise em qualquer um dos seus repositórios.
+
+---
+
+### Passo 1: Pré-requisitos (ter no PC antes de tudo)
+
+Antes de começar, garanta que você tenha as seguintes ferramentas instaladas em seu sistema:
+
+1.  **Python** (versão 3.11 ou superior).
+2.  **Git**.
+3.  **GitHub CLI (`gh`)**: Após instalar em (https://cli.github.com), logue com sua conta do GitHub executando `gh auth login` no seu terminal (só precisa fazer isso uma vez por PC).
+---
+
+### Passo 2: Configurando Seu Repositório
+
+**Para cada novo Repositório em que você desejar usar o CodeWise, siga os passos abaixo.**
+ 
+"*O ideal é sempre criar um ambiente virtual na pasta raiz do novo repositório para evitar conflitos das dependências.*"
+
+---
+#### 2.1 Crie e Utilize um Ambiente Virtual
+
+Para evitar conflitos com outros projetos Python, use um ambiente virtual (`venv`).
+
+* **Para Criar o Ambiente:**
+
+    * Este comando cria uma pasta `.venv` com uma instalação limpa do Python. Faça isso uma única vez por repositório,
+    *Lembrando que o ".venv" é o nome da pasta que foi criada, voce pode escolher qualquer outro nome pra ela.*
+ 
+
+(**dentro da raíz do repositório onde está a pasta .git**)
+
+    ```bash
+    # No Windows
+    py -m venv .venv
+    
+    # No Linux/WSL
+    python3 -m venv .venv
+    ```
+
+* **Para Ativar o Ambiente:**
+
+    * Sempre que for trabalhar no projeto, você precisa ativar o ambiente.
+
+    * **Dica para Windows/PowerShell:** Se o comando de ativação der um erro de política de execução, rode este comando primeiro: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
+
+    ```bash
+    # No Windows (PowerShell)
+    .\.venv\Scripts\activate
+    
+    # No Linux/WSL
+    source .venv/bin/activate
+    ```
+    *Você saberá que funcionou porque o nome `(.venv)` aparecerá no início da linha do seu terminal.*
+---
+#### 2.2 Instale a Ferramenta CodeWise
+Com o ambiente virtual ativo, instale a biblioteca com o `pip`.
+
+```bash
+pip install codewise
+```
+ **Pode demorar um pouco pra instalar todas as dependências na primeira vez.**
+
+
+*Após instalar a lib, você pode confirmar se está tudo certo com o comando `codewise-help`*
+
+---
+
+#### 2.3 Configure a Chave da API (.env)
+Para que a IA funcione, você precisa configurar sua chave da API do Google Gemini.
+
+1.  **Na raiz do seu projeto**, crie um arquivo chamado `.env`. Você pode usar os seguintes comandos no terminal:
+
+    * **Windows**
+        ```bash
+        notepad .env
+        ```
+    * **Linux/WSL:**
+        ```bash
+        touch .env && nano .env
+        ```
+
+2.  Dentro do arquivo `.env`, cole o seguinte conteúdo, adicione sua chave e salve:
+        ```
+        GEMINI_API_KEY=SUA_CHAVE_AQUI
+        MODEL_NAME=gemini-2.0-flash
+        ```
+    ⚠️ **Importante:** Lembre-se de adicionar o arquivo `.env` ao seu `.gitignore` para não enviar sua chave secreta para o GitHub ao dar push e que ele deve ser do tipo "arquivo ENV" e não .txt ou coisa do tipo.
+
+---
+
+#### 2.4 Agora apenas uma vez > Ative a Automação no Repositório com um comando.
+Na raiz do projeto onde também está a pasta .git use:
+
+```bash
+codewise-init --all
+```
+Você verá uma mensagem de sucesso confirmando que a automação está ativa.
+
+Com esse comando os arquivos de pre-commit e pre-push já terão sido adicionados ao seu hooks do repositório.
+
+---
+Tudo está funcionando agora no repositório que você configurou.
+Caso queira instalar em um novo repositório basta repetir os passos.
+
+# Usando o CodeWise 
+Com a configuração concluída, você já tem acesso aos comandos **codewise-lint** e **codewise-pr** de forma manual e automatizada após instalar os hooks.
+
+1.  **Adicione suas alterações**
+
+    * Após modificar seus arquivos, adicione-os à "staging area":
+    ```bash
+    git add .
+    ```
+    * Aqui você já pode usar o comando `codewise-lint` para analisar os arquivos e você poder fazer ajustes antes de commitar.
+
+2.  **Faça o commit**
+    ```bash
+    git commit -m "implementa novo recurso "
+    ```
+    * Neste momento, o **hook `pre-commit` será ativado**, e o `codewise-lint` fará a análise rápida no seu terminal.
+
+3.  **Envie para o GitHub**
+    ```bash
+    git push
+    ```
+    * Agora, o **hook `pre-push` será ativado**. O `codewise-pr` irá criar um novo/atualizar seu Pull Request com título, descrição e análise técnica gerados pela IA.
