@@ -1,6 +1,8 @@
 import subprocess
 import os
 import sys
+import re
+
 
 def run_git_command(command, repo_path):
     """Função auxiliar para executar comandos Git e capturar a saída."""
@@ -62,6 +64,31 @@ def gerar_entrada_automatica(caminho_repo, caminho_saida, nome_branch):
     except Exception as e:
         print(f"Ocorreu um erro inesperado em 'entradagit.py': {e}", file=sys.stderr)
         return False
+
+def obter_repo_upstream(caminho_repo: str) -> str | None:
+    """
+    Tenta descobrir o nome do repositório upstream (ex: 'leds-org/leds-tools-public').
+    Retorna o nome no formato 'OWNER/REPO' ou None se não encontrar.
+    """
+    try:
+        # Pega a URL do remote 'upstream'
+        resultado = run_git_command(["git", "remote", "get-url", "upstream"], cwd=caminho_repo)
+        
+        if not resultado:
+            return None
+
+        url = resultado.strip()
+        match = re.search(r"github\.com[/:]([\w-]+/[\w-]+)", url)
+        
+        if match:
+            repo_full_name = match.group(1)
+            # Remove a extensão .git se ela existir
+            return repo_full_name.removesuffix('.git')
+            
+    except Exception:
+        return None
+    
+    return None
 
 def obter_mudancas_staged(repo_path="."):
     """Verifica o estado do repositório para o modo lint usando subprocess."""
