@@ -6,7 +6,7 @@ except FileNotFoundError:
     required = []
 
 setup(
-    name="codewise",
+    name="codewise_lib",
     version="2.1.5",
     author="BPC",
     description="análise de código e automação de PRs com CrewAI.",
