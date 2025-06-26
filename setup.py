@@ -7,7 +7,7 @@ except FileNotFoundError:
 
 setup(
     name="codewise",
-    version="2.1.2",
+    version="2.1.4",
     author="BPC",
     description="análise de código e automação de PRs com CrewAI.",
     long_description=open("README.md", encoding="utf-8").read(),
@@ -23,7 +23,9 @@ setup(
     python_requires='>=3.11',
     entry_points={
         'console_scripts': [
-            'codewise-pr=scripts.codewise_review_win:main_pr',
+            'codewise-pr=scripts.codewise_review_win:main_pr_interactive', 
+            'codewise-pr-origin=scripts.codewise_review_win:main_pr_origin',   
+            'codewise-pr-upstream=scripts.codewise_review_win:main_pr_upstream', 
             'codewise-lint=scripts.codewise_review_win:main_lint',
             'codewise-init=scripts.install_hook:main',
             'codewise-help=scripts.help:main',
