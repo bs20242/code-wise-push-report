@@ -129,6 +129,17 @@ Na raiz do projeto onde também está a pasta .git use:
 ```bash
 codewise-init --all
 ```
+Configuração do Alvo do Pull Request
+Se o seu repositório tiver um remote upstream configurado, o instalador fará uma pergunta para definir o comportamento padrão do hook pre-push:
+
+ Um remote 'upstream' foi detectado.
+Qual deve ser o comportamento padrão do 'git push' para este repositório?
+1: Criar Pull Request no 'origin' (seu fork)
+2: Criar Pull Request no 'upstream' (projeto principal)
+Escolha o padrão (1 ou 2):
+
+Sua escolha será salva no hook, e você não precisará mais se preocupar com isso. Se não houver upstream, ele será configurado para origin por padrão.
+
 Você verá uma mensagem de sucesso confirmando que a automação está ativa.
 
 Com esse comando os arquivos de pre-commit e pre-push já terão sido adicionados ao seu hooks do repositório.
