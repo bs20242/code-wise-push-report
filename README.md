@@ -123,14 +123,25 @@ Para que a IA funcione, você precisa configurar sua chave da API do Google Gemi
 
 ---
 
+## Nota Importante: A ferramenta CodeWise espera que seus remotes sigam a convenção padrão do GitHub:
+
+origin: Deve apontar para o seu fork pessoal do repositório.
+
+upstream: (caso você adicione ao repositório)Deve apontar para o repositório principal do qual você fez o fork.
+
+
 #### 2.4 Agora apenas uma vez > Ative a Automação no Repositório com um comando.
 Na raiz do projeto onde também está a pasta .git use:
 
 ```bash
 codewise-init --all
 ```
-Configuração do Alvo do Pull Request
-Se o seu repositório tiver um remote upstream configurado, o instalador fará uma pergunta para definir o comportamento padrão do hook pre-push:
+**Use esse comando sempre que você quiser mudar para onde o PULL REQUEST SERÁ CRIADO nos hooks de pre push, pois se você adicionar um remoto upstream você tem que alternar entre qual o PR será gerado.**
+
+Aqui está a configuração do Alvo do Pull Request:
+
+Se o seu repositório tiver um remote upstream configurado, o instalador fará uma pergunta depois que você usou o comando "codewise-init --all"
+para definir o comportamento padrão do hook pre-push:
 
  Um remote 'upstream' foi detectado.
 Qual deve ser o comportamento padrão do 'git push' para este repositório?
@@ -145,6 +156,7 @@ Você verá uma mensagem de sucesso confirmando que a automação está ativa.
 Com esse comando os arquivos de pre-commit e pre-push já terão sido adicionados ao seu hooks do repositório.
 
 ---
+
 Tudo está funcionando agora no repositório que você configurou.
 Caso queira instalar em um novo repositório basta repetir os passos.
 
