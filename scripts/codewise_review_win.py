@@ -185,16 +185,27 @@ def run_pr_logic(target_selecionado):
         head_branch_completa = f"{origin_slug.split('/')[0]}:{current_branch}"
         repo_alvo_pr = obter_repo_slug(target_selecionado, repo_path)
 
+
         print("\n--- 🤖 Executando IA para documentação do PR ---", file=sys.stderr)
+
         titulo_bruto = run_codewise_mode("titulo", repo_path, current_branch)
+        titulo_final = "" # Inicializa a variável
+        if titulo_bruto:
+            titulo_final = extrair_titulo_valido(titulo_bruto) or f"feat: Modificações da branch {current_branch}"
+            print(f" ✅ Título gerado: {titulo_final}", file=sys.stderr)
+        
         descricao = run_codewise_mode("descricao", repo_path, current_branch)
+        if descricao:
+            print("\n ✅ Descrição gerada:", file=sys.stderr)
+            print("-" * 40, file=sys.stderr)
+            print(descricao, file=sys.stderr)
+            print("-" * 40, file=sys.stderr)
+
         analise_tecnica = run_codewise_mode("analise", repo_path, current_branch)
-
-        if not all([titulo_bruto, descricao, analise_tecnica]):
-            sys.exit("❌ Falha ao gerar todos os textos necessários da IA.")
-
-        titulo_final = extrair_titulo_valido(titulo_bruto) or f"feat: Modificações da branch {current_branch}"
-        print(f"✔️ Título definido para o PR: {titulo_final}", file=sys.stderr)
+        
+        if not all([titulo_final, descricao, analise_tecnica]):
+            sys.exit("❌ Falha ao gerar um ou mais textos necessários da IA.")
+ 
 
         temp_analise_path = os.path.join(repo_path, ".codewise_analise_temp.txt")
         with open(temp_analise_path, "w", encoding='utf-8') as f: f.write(analise_tecnica)
