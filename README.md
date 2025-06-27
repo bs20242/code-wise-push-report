@@ -10,27 +10,6 @@
 
 ---
 
-## Guia de Instalação e Primeiro Uso
-
-### Pré-requisitos (Instalar antes de tudo)
-
-Antes de começar, garanta que você tenha as seguintes ferramentas instaladas em seu sistema:
-
-1.  **Python** (versão 3.11 ou superior).
-2.  **Git**.
-3.  **GitHub CLI (`gh`)**: Após instalar, logue com sua conta do GitHub executando `gh auth login` no seu terminal (só precisa fazer isso uma vez por PC).
----
-
-# Resumo dos passos que serão melhor detalhados:
-
-1. **Logue com seu gh cli no pc que for usar.**
-2. **Crie o ambiente virtual no repositório que irá usar a ferramenta**
-3. **Crie o arquivo .env para configurar sua key do gemini**
-4. **Instale a lib do codewise.**
-5. **Use o comando para ativar a automação de hooks.**
- 
-
-
 ## Guia de Instalação 
 Siga estes passos para instalar e configurar o CodeWise em qualquer um dos seus repositórios.
 
@@ -91,7 +70,7 @@ Para evitar conflitos com outros projetos Python, use um ambiente virtual (`venv
 Com o ambiente virtual ativo, instale a biblioteca com o `pip`.
 
 ```bash
-pip install codewise
+pip install codewise-lib
 ```
  **Pode demorar um pouco pra instalar todas as dependências na primeira vez.**
 
@@ -181,4 +160,4 @@ Com a configuração concluída, você já tem acesso aos comandos **codewise-li
     ```bash
     git push
     ```
-    * Agora, o **hook `pre-push` será ativado**. O `codewise-pr` irá criar um novo/atualizar seu Pull Request com título, descrição e análise técnica gerados pela IA.
+    * Agora, o **hook `pre-push` será ativado**. O `codewise-pr` vai perguntar para qual remote você quer enviar caso haja um upstream além do seu origin em seguida irá criar um novo/atualizar seu Pull Request com título, descrição e análise técnica gerados pela IA.

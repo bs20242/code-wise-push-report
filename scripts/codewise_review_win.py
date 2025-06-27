@@ -69,10 +69,20 @@ def extrair_titulo_valido(texto):
     if match: return match.group(0).strip()
     return None
 
-def obter_pr_aberto_para_branch(branch, repo_dir):
+def obter_pr_aberto_para_branch(branch, repo_dir, repo_slug):
     try:
-        result = subprocess.run(["gh", "pr", "list", "--head", branch, "--state", "open", "--json", "number"], check=True, capture_output=True, text=True, encoding='utf-8', cwd=repo_dir)
-        return json.loads(result.stdout)[0]['number'] if json.loads(result.stdout) else None
+        comando_list = [
+            "gh", "pr", "list",
+            "--repo", repo_slug,  # Diz ao 'gh' em qual repositório procurar
+            "--head", branch,
+            "--state", "open",
+            "--json", "number"
+        ]
+        
+        result = subprocess.run(comando_list, check=True, capture_output=True, text=True, encoding='utf-8', cwd=repo_dir)
+        
+        pr_list = json.loads(result.stdout)
+        return pr_list[0]['number'] if pr_list else None
     except (subprocess.CalledProcessError, json.JSONDecodeError):
         return None
 
@@ -149,7 +159,7 @@ def run_pr_logic(target_selecionado):
 
     try:
         if target_selecionado == 'origin' and upstream_existe:
-            print("🔧 Truque: Renomeando 'upstream' temporariamente para evitar bug do gh...", file=sys.stderr)
+            print("Renomeando 'upstream' temporariamente para evitar bug do gh...", file=sys.stderr)
             subprocess.run(["git", "remote", "rename", "upstream", "upstream_temp"], cwd=repo_path, check=True, capture_output=True)
             upstream_renomeado = True
 
@@ -188,7 +198,8 @@ def run_pr_logic(target_selecionado):
 
         temp_analise_path = os.path.join(repo_path, ".codewise_analise_temp.txt")
         with open(temp_analise_path, "w", encoding='utf-8') as f: f.write(analise_tecnica)
-        pr_numero = obter_pr_aberto_para_branch(current_branch, repo_path)
+        pr_numero = obter_pr_aberto_para_branch(current_branch, repo_path, repo_alvo_pr)
+
 
         if pr_numero:
             print(f"⚠️ PR #{pr_numero} já existente. Acrescentando nova análise...", file=sys.stderr)
@@ -235,7 +246,7 @@ def run_pr_logic(target_selecionado):
                     os.remove(temp_analise_path)
     finally:
         if upstream_renomeado:
-            print("🔧 Restaurando nome do remote 'upstream'...", file=sys.stderr)
+            print(" Restaurando nome do remote 'upstream'...", file=sys.stderr)
             subprocess.run(["git", "remote", "rename", "upstream_temp", "upstream"], cwd=repo_path, check=True, capture_output=True)
 
 def main_pr_origin():
@@ -245,3 +256,33 @@ def main_pr_origin():
 def main_pr_upstream():
     """Ponto de entrada para criar um PR no 'upstream'."""
     run_pr_logic(target_selecionado="upstream")
+
+
+def main_pr_interactive():
+    """Função interativa para ser chamada manualmente pelo comando 'codewise-pr'."""
+    repo_path = os.getcwd()
+    target_selecionado = "origin" # Define 'origin' como padrão
+    
+    # Verifica se o remote 'upstream' existe para decidir se o menu deve ser mostrado
+    if verificar_remote_existe('upstream', repo_path):
+        print("\n Qual o alvo do Pull Request?")
+        print("   1: origin (seu fork)")
+        print("   2: upstream (repositório principal)")
+        
+        while True:
+            try:
+                escolha = input("Escolha uma opção (1 ou 2): ").strip()
+                if escolha == '1':
+                    target_selecionado = "origin"
+                    break
+                elif escolha == '2':
+                    target_selecionado = "upstream"
+                    break
+                else:
+                    print("Opção inválida. Por favor, digite 1 ou 2.")
+            except (KeyboardInterrupt, EOFError):
+                print("\nOperação cancelada pelo usuário.")
+                sys.exit(1)
+    
+    
+    run_pr_logic(target_selecionado=target_selecionado)
