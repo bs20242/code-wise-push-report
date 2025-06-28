@@ -1,0 +1,9 @@
+include README.md
+include requirements.txt
+include pyproject.toml
+include setup.py
+
+recursive-include codewise_lib/config *.yaml
+
+recursive-include scripts *.py
+#a
