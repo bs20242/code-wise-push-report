@@ -1,4 +1,3 @@
-# Arquivo: cw_runner.py (VERSÃO FINAL E COMPLETA)
 import os
 import sys
 from .crew import Codewise
@@ -49,33 +48,32 @@ class CodewiseRunner:
 
             print("Salvando relatórios de análise individuais...", file=sys.stderr)
 
-            # Mapeamento robusto usando palavras-chave únicas que existem nas descrições.
-            # Este método não depende da ordem e não quebra se o resto da descrição mudar.
+            output_dir_name = "analises-concluidas"
+            output_dir_path = os.path.join(caminho_repo, output_dir_name)
+            os.makedirs(output_dir_path, exist_ok=True)
+
             keyword_map = {
-                "ARQUITETURA DE SOFTWARE": "arquitetura_atual.md",
-                "HEURÍSTICAS DE INTEGRAÇÃO": "analise_heuristicas_integracoes.md",
-                "PRINCÍPIOS SOLID": "analise_solid.md",
-                "PADRÕES DE PROJETO": "padroes_de_projeto.md"
+                "inspeção na estrutura do projeto": "arquitetura_atual.md",
+                "analise as integrações, bibliotecas externas e APIs": "analise_heuristicas_integracoes.md",
+                "aderência da mudança aos princípios S.O.L.I.D.": "analise_solid.md",
+                "aplicação correta ou ausência de padrões de projeto": "padroes_de_projeto.md"
             }
 
             tasks_processed = {key: False for key in keyword_map}
 
             for task in analysis_crew.tasks:
-                # O 'task.description' agora contém o texto completo, incluindo o diff.
-                # Verificamos qual das nossas palavras-chave está contida na descrição da tarefa.
                 for keyword, filename in keyword_map.items():
-                    if keyword in task.description.upper() and not tasks_processed[keyword]:
-                        file_path = os.path.join(caminho_repo, filename)
+                    if keyword in task.description and not tasks_processed[keyword]:
+                        file_path = os.path.join(output_dir_path, filename)
                         try:
                             with open(file_path, "w", encoding="utf-8") as f:
                                 f.write(str(task.output))
-                            print(f"   - Arquivo '{filename}' salvo com sucesso em '{caminho_repo}'.", file=sys.stderr)
-                            tasks_processed[keyword] = True # Marca como processado para evitar duplicatas
-                            break # Vai para a próxima tarefa
+                            print(f"   - Arquivo '{filename}' salvo com sucesso em '{output_dir_path}'.", file=sys.stderr)
+                            tasks_processed[keyword] = True
+                            break 
                         except Exception as e:
                             print(f"   - ERRO ao salvar o arquivo '{filename}': {e}", file=sys.stderr)
-
-            # A lógica para gerar o resumo continua a mesma
+            
             resumo_agent = codewise_instance.summary_specialist()
             resumo_task = Task(
                 description="Com base no contexto da análise completa fornecida, crie um 'Resumo Executivo do Pull Request' **obrigatoriamente em Português do Brasil**, bem formatado em markdown, com 3-4 bullet points detalhados.",
