@@ -45,27 +45,35 @@ class CodewiseRunner:
 
         elif modo == 'analise':
             analysis_crew = codewise_instance.crew()
-            # O input para a análise profunda é passado aqui
             analysis_crew.kickoff(inputs={'input': contexto_para_ia})
-            
-            print("Salvando relatórios de análise individuais...", file=sys.stderr)
-            task_config = codewise_instance.tasks_config
-            task_map = {
-                task_config['analise_estrutura']['description']: "arquitetura_atual.md",
-                task_config['analise_heuristicas']['description']: "analise_heuristicas_integracoes.md",
-                task_config['analise_solid']['description']: "analise_solid.md",
-                task_config['padroes_projeto']['description']: "padroes_de_projeto.md"
-            }
-            
-            for task in analysis_crew.tasks:
-                if task.description in task_map:
-                    filename = task_map[task.description]
-                    file_path = os.path.join(caminho_repo, filename)
-                    # Usamos .raw_output para pegar apenas o texto gerado pelo agente daquela tarefa
-                    with open(file_path, "w", encoding="utf-8") as f:
-                        f.write(task.output.raw_output)
-                    print(f"   - Arquivo '{filename}' salvo.", file=sys.stderr)
 
+            print("Salvando relatórios de análise individuais...", file=sys.stderr)
+
+            # Define os nomes dos arquivos na mesma ordem sequencial das tarefas na crew
+            filenames = [
+                "arquitetura_atual.md",
+                "analise_heuristicas_integracoes.md",
+                "analise_solid.md",
+                "padroes_de_projeto.md"
+            ]
+
+            # Garante que temos o mesmo número de tarefas e nomes de arquivo
+            if len(analysis_crew.tasks) != len(filenames):
+                print("AVISO: O número de tarefas de análise não corresponde ao número de nomes de arquivos definidos.", file=sys.stderr)
+            
+            # Itera sobre as tarefas e nomes de arquivos juntos, usando a ordem garantida
+            for task, filename in zip(analysis_crew.tasks, filenames):
+                file_path = os.path.join(caminho_repo, filename)
+                try:
+                    with open(file_path, "w", encoding="utf-8") as f:
+                        # Usa str(task.output) para garantir que o conteúdo seja gravado
+                        f.write(str(task.output))
+                    print(f"   - Arquivo '{filename}' salvo com sucesso em '{caminho_repo}'.", file=sys.stderr)
+                except Exception as e:
+                    print(f"   - ERRO ao salvar o arquivo '{filename}': {e}", file=sys.stderr)
+
+
+            # A lógica para gerar o resumo continua a mesma
             resumo_agent = codewise_instance.summary_specialist()
             resumo_task = Task(
                 description="Com base no contexto da análise completa fornecida, crie um 'Resumo Executivo do Pull Request' **obrigatoriamente em Português do Brasil**, bem formatado em markdown, com 3-4 bullet points detalhados.",
