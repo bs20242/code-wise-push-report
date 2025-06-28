@@ -49,29 +49,31 @@ class CodewiseRunner:
 
             print("Salvando relatórios de análise individuais...", file=sys.stderr)
 
-            # Define os nomes dos arquivos na mesma ordem sequencial das tarefas na crew
-            filenames = [
-                "arquitetura_atual.md",
-                "analise_heuristicas_integracoes.md",
-                "analise_solid.md",
-                "padroes_de_projeto.md"
-            ]
+            # Mapeamento robusto usando palavras-chave únicas que existem nas descrições.
+            # Este método não depende da ordem e não quebra se o resto da descrição mudar.
+            keyword_map = {
+                "ARQUITETURA DE SOFTWARE": "arquitetura_atual.md",
+                "HEURÍSTICAS DE INTEGRAÇÃO": "analise_heuristicas_integracoes.md",
+                "PRINCÍPIOS SOLID": "analise_solid.md",
+                "PADRÕES DE PROJETO": "padroes_de_projeto.md"
+            }
 
-            # Garante que temos o mesmo número de tarefas e nomes de arquivo
-            if len(analysis_crew.tasks) != len(filenames):
-                print("AVISO: O número de tarefas de análise não corresponde ao número de nomes de arquivos definidos.", file=sys.stderr)
-            
-            # Itera sobre as tarefas e nomes de arquivos juntos, usando a ordem garantida
-            for task, filename in zip(analysis_crew.tasks, filenames):
-                file_path = os.path.join(caminho_repo, filename)
-                try:
-                    with open(file_path, "w", encoding="utf-8") as f:
-                        # Usa str(task.output) para garantir que o conteúdo seja gravado
-                        f.write(str(task.output))
-                    print(f"   - Arquivo '{filename}' salvo com sucesso em '{caminho_repo}'.", file=sys.stderr)
-                except Exception as e:
-                    print(f"   - ERRO ao salvar o arquivo '{filename}': {e}", file=sys.stderr)
+            tasks_processed = {key: False for key in keyword_map}
 
+            for task in analysis_crew.tasks:
+                # O 'task.description' agora contém o texto completo, incluindo o diff.
+                # Verificamos qual das nossas palavras-chave está contida na descrição da tarefa.
+                for keyword, filename in keyword_map.items():
+                    if keyword in task.description.upper() and not tasks_processed[keyword]:
+                        file_path = os.path.join(caminho_repo, filename)
+                        try:
+                            with open(file_path, "w", encoding="utf-8") as f:
+                                f.write(str(task.output))
+                            print(f"   - Arquivo '{filename}' salvo com sucesso em '{caminho_repo}'.", file=sys.stderr)
+                            tasks_processed[keyword] = True # Marca como processado para evitar duplicatas
+                            break # Vai para a próxima tarefa
+                        except Exception as e:
+                            print(f"   - ERRO ao salvar o arquivo '{filename}': {e}", file=sys.stderr)
 
             # A lógica para gerar o resumo continua a mesma
             resumo_agent = codewise_instance.summary_specialist()
