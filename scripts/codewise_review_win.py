@@ -243,6 +243,8 @@ def run_pr_logic(target_selecionado, pushed_branch):
             except Exception as e:
                 print(f"⚠️ Não foi possível buscar a descrição antiga. Substituindo pela nova. Erro: {e}", file=sys.stderr)
                 subprocess.run(["gh", "pr", "edit", str(pr_numero), "--title", titulo_final, "--body", descricao, "--repo", repo_alvo_pr], check=False, cwd=repo_path)
+
+
         else:
             print("🆕 Nenhum PR aberto. Criando Pull Request...", file=sys.stderr)
             try:
@@ -260,9 +262,14 @@ def run_pr_logic(target_selecionado, pushed_branch):
                     raise Exception(f"Não foi possível extrair o número do PR da URL: {pr_url}")
                 print(f"✅ PR #{pr_numero} criado: {pr_url}", file=sys.stderr)
             except Exception as e:
+
+                print("\n⚠️ AVISO: Não foi possível criar o Pull Request automaticamente.", file=sys.stderr)
+                print("   Isso é normal no primeiro push para uma nova branch.", file=sys.stderr)
+                print("   O seu 'git push' para o 'origin' continuará normalmente.", file=sys.stderr)
+                print("   Após o push, rode 'codewise-pr' manualmente para criar o PR para o 'upstream'.", file=sys.stderr)
                 if os.path.exists(temp_analise_path):
                     os.remove(temp_analise_path)
-                sys.exit(f"❌ Falha ao criar PR: {e}")
+                sys.exit(0)
 
         if pr_numero:
             print(f"💬 Comentando análise técnica no PR #{pr_numero}...", file=sys.stderr)
