@@ -52,19 +52,19 @@ class Codewise:
     @task
     def task_estrutura(self) -> Task:
         cfg = self.tasks_config['analise_estrutura']
-        return Task(description=cfg['description'], expected_output=cfg['expected_output'], agent=self.senior_architect(), output_file=os.path.join(os.path.dirname(__file__),'arquitetura_atual.md'))
+        return Task(description=cfg['description'], expected_output=cfg['expected_output'], agent=self.senior_architect())
     @task
     def task_heuristicas(self) -> Task:
         cfg = self.tasks_config['analise_heuristicas']
-        return Task(description=cfg['description'], expected_output=cfg['expected_output'], agent=self.senior_analytics(), output_file=os.path.join(os.path.dirname(__file__),'analise_heuristicas_integracoes.md'))
+        return Task(description=cfg['description'], expected_output=cfg['expected_output'], agent=self.senior_analytics())
     @task
     def task_solid(self) -> Task:
         cfg = self.tasks_config['analise_solid']
-        return Task(description=cfg['description'], expected_output=cfg['expected_output'], agent=self.quality_consultant(), output_file=os.path.join(os.path.dirname(__file__),'analise_solid.md'))
+        return Task(description=cfg['description'], expected_output=cfg['expected_output'], agent=self.quality_consultant())
     @task
     def task_padroes(self) -> Task:
         cfg = self.tasks_config['padroes_projeto']
-        return Task(description=cfg['description'], expected_output=cfg['expected_output'], agent=self.quality_control_manager(), output_file=os.path.join(os.path.dirname(__file__),'padroes_de_projeto.md'))
+        return Task(description=cfg['description'], expected_output=cfg['expected_output'], agent=self.quality_control_manager())
     @task
     def task_summarize(self) -> Task:
         cfg = self.tasks_config['summarize_analysis']
