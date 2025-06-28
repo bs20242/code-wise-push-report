@@ -322,5 +322,10 @@ def main_pr_interactive():
                 print("\nOperação cancelada pelo usuário.")
                 sys.exit(1)
     
+
+    try:
+        current_branch = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], encoding='utf-8', cwd=repo_path).strip()
+    except Exception as e:
+        sys.exit(f"❌ Erro ao detectar a branch Git atual: {e}")
     
-    run_pr_logic(target_selecionado=target_selecionado)
+    run_pr_logic(target_selecionado=target_selecionado, pushed_branch=current_branch)
