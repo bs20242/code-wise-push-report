@@ -23,7 +23,6 @@ def run_codewise_mode(mode, repo_path, branch_name):
     ]
     try:
         env = os.environ.copy()
-        # Adiciona a raiz do projeto ao PYTHONPATH para garantir que os módulos sejam encontrados
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         env['PYTHONPATH'] = f"{project_root}{os.pathsep}{env.get('PYTHONPATH', '')}"
         
@@ -39,14 +38,30 @@ def run_codewise_mode(mode, repo_path, branch_name):
         )
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
-        # LÓGICA DE DEBUG MELHORADA PARA CAPTURAR TODOS OS ERROS
-        print(f"❌ FALHA no modo '{mode}': O subprocesso falhou com o código de saída {e.returncode}", file=sys.stderr)
-        print("\n--- Saída de Erro (stderr) do Subprocesso ---", file=sys.stderr)
-        print(e.stderr if e.stderr else "Nenhuma saída de erro foi capturada.")
-        print("\n--- Saída Padrão (stdout) do Subprocesso ---", file=sys.stderr)
-        print(e.stdout if e.stdout else "Nenhuma saída padrão foi capturada.")
-        print("---------------------------------------------", file=sys.stderr)
-        return None
+        error_output = e.stderr or ""
+        if "429" in error_output and "RESOURCE_EXHAUSTED" in error_output:
+            # Imprime a mensagem amigável e formatada
+            print("""
+    ================================================================
+    ❌ ERRO: Limite de Uso da API do Google Atingido (Erro 429)
+    ================================================================
+    
+    A sua chave de API atingiu o limite máximo de requisições
+    permitido pelo plano gratuito do Google Gemini.
+    
+    Isso não é um bug no CodeWise, mas uma limitação da sua conta
+    na plataforma do Google.
+        
+    .  Aguarde: A cota do plano gratuito geralmente é renovada a
+        cada 24 horas. Você pode tentar novamente amanhã.
+  
+            """, file=sys.stderr)
+        else:
+            print(f"❌ FALHA Inesperada no modo '{mode}': O subprocesso falhou com o código de saída {e.returncode}", file=sys.stderr)
+            print("\n--- Saída de Erro (stderr) do Subprocesso ---", file=sys.stderr)
+            print(e.stderr if e.stderr else "Nenhuma saída de erro foi capturada.")
+            print("---------------------------------------------", file=sys.stderr)
+        return None 
 
 def obter_branch_padrao_remota(repo_path):
     try:
@@ -148,15 +163,12 @@ def main_lint():
 def run_pr_logic(target_selecionado, pushed_branch):
     """Função principal que contém toda a lógica de criação de PR."""
 
-    # --- NOVA VALIDAÇÃO ---
-    # Pega a branch em que o usuário está agora
+
     current_branch = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], text=True).strip()
 
-    # Compara com a branch que está sendo enviada pelo 'git push'
     if current_branch != pushed_branch:
         print(f" ⚠️ Hook de Push ignorado: Você está na branch '{current_branch}', mas o push é para a branch '{pushed_branch}'. Push será feito sem o Hook.", file=sys.stderr)
         sys.exit(0)  # Sai do script com sucesso, sem fazer nada.
-    # --- FIM DA NOVA VALIDAÇÃO ---
 
     if not shutil.which("gh"):
         print("❌ Erro: GitHub CLI ('gh') não foi encontrado no seu sistema.", file=sys.stderr)

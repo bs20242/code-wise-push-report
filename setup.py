@@ -7,7 +7,7 @@ except FileNotFoundError:
 
 setup(
     name="codewise_lib",
-    version="3.1.6",
+    version="3.1.7",
     author="Codewiselib",
     description="análise de código e automação de PRs com CrewAI.",
     long_description=open("README.md", encoding="utf-8").read(),
