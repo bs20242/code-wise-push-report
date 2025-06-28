@@ -321,33 +321,35 @@ def main_pr_upstream():
 def main_pr_interactive():
     """Função interativa para ser chamada manualmente pelo comando 'codewise-pr'."""
     repo_path = os.getcwd()
-    target_selecionado = "origin" # Define 'origin' como padrão
-    
-    # Verifica se o remote 'upstream' existe para decidir se o menu deve ser mostrado
-    if verificar_remote_existe('upstream', repo_path):
-        print("\n Qual o alvo do Pull Request?")
-        print("   1: origin (seu fork)")
-        print("   2: upstream (repositório principal)")
-        
-        while True:
-            try:
-                escolha = input("Escolha uma opção (1 ou 2): ").strip()
-                if escolha == '1':
-                    target_selecionado = "origin"
-                    break
-                elif escolha == '2':
-                    target_selecionado = "upstream"
-                    break
-                else:
-                    print("Opção inválida. Por favor, digite 1 ou 2.")
-            except (KeyboardInterrupt, EOFError):
-                print("\nOperação cancelada pelo usuário.")
-                sys.exit(1)
-    
+
+    try:
+        remotes_output = subprocess.check_output(["git", "remote"], cwd=repo_path, text=True, encoding='utf-8')
+        remotes = remotes_output.strip().splitlines()
+    except subprocess.CalledProcessError:
+        sys.exit("❌ Erro: Não foi possível listar os remotes do Git.")
+
+    if not remotes:
+        sys.exit("❌ Nenhum remote foi encontrado no repositório.")
+
+    print("\n📍Remotes detectados:")
+    for i, remote in enumerate(remotes, start=1):
+        print(f"  {i}: {remote}")
+
+    while True:
+        try:
+            escolha = input(f"Escolha o número do remote para o Pull Request [1-{len(remotes)}]: ").strip()
+            if escolha.isdigit() and 1 <= int(escolha) <= len(remotes):
+                target_selecionado = remotes[int(escolha) - 1]
+                break
+            else:
+                print("❌ Escolha inválida. Digite um número válido.")
+        except (KeyboardInterrupt, EOFError):
+            print("\nOperação cancelada pelo usuário.")
+            sys.exit(1)
 
     try:
         current_branch = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], encoding='utf-8', cwd=repo_path).strip()
     except Exception as e:
         sys.exit(f"❌ Erro ao detectar a branch Git atual: {e}")
-    
+
     run_pr_logic(target_selecionado=target_selecionado, pushed_branch=current_branch)

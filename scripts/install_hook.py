@@ -59,38 +59,41 @@ def main():
         print("Nenhum hook especificado. Use --commit, --push, ou --all.", file=sys.stderr)
         sys.exit(1)
 
-    # Instala o hook pre-commit (não muda)
+
     if args.commit or args.all:
         install_hook('pre-commit', PRE_COMMIT_CONTENT, repo_root)
 
-    # --- LÓGICA INTELIGENTE PARA O HOOK PRE-PUSH ---
-    if args.push or args.all:
-        push_command = "codewise-pr-origin" # Padrão seguro
 
-        # Só pergunta se o 'upstream' existir
-        if verificar_remote_existe('upstream'):
-            print("\n🎯 Um remote 'upstream' foi detectado.")
-            print("   Qual deve ser o comportamento padrão do 'git push' para este repositório?")
-            print("   1: Criar Pull Request no 'origin' (seu fork)")
-            print("   2: Criar Pull Request no 'upstream' (projeto principal)")
-            
-            while True:
-                try:
-                    escolha = input("Escolha o padrão (1 ou 2): ").strip()
-                    if escolha == '1':
-                        push_command = "codewise-pr-origin"
-                        break
-                    elif escolha == '2':
-                        push_command = "codewise-pr-upstream"
-                        break
-                    else:
-                        print("Opção inválida. Por favor, digite 1 ou 2.")
-                except (KeyboardInterrupt, EOFError):
-                    print("\nInstalação do hook pre-push cancelada.")
-                    sys.exit(1)
+    if args.push or args.all:
+        # Lista todos os remotes
+        try:
+            remotes_raw = subprocess.check_output(["git", "remote"], cwd=repo_root, text=True, encoding='utf-8')
+            remotes = [r.strip() for r in remotes_raw.splitlines() if r.strip()]
+        except subprocess.CalledProcessError:
+            sys.exit("❌ Erro: Não foi possível listar os remotes do Git.")
+
+        if not remotes:
+            sys.exit("❌ Nenhum remote foi encontrado no repositório.")
+
+        print("\n🎯 Remotes disponíveis para criação automática de Pull Request:")
+        for i, remote in enumerate(remotes, 1):
+            print(f"   {i}: {remote}")
+
+        while True:
+            try:
+                escolha = input(f"Escolha o remote padrão para o pre-push hook [1-{len(remotes)}]: ").strip()
+                if escolha.isdigit() and 1 <= int(escolha) <= len(remotes):
+                    remote_escolhido = remotes[int(escolha) - 1]
+                    push_command = f"codewise-pr --target {remote_escolhido}"
+                    break
+                else:
+                    print("Opção inválida. Digite um número válido.")
+            except (KeyboardInterrupt, EOFError):
+                print("\nInstalação do hook pre-push cancelada.")
+                sys.exit(1)
+
         
 
-        # SUBSTITUA a criação desta variável
         pre_push_content_dinamico = f"""#!/bin/sh
 set -e
 
