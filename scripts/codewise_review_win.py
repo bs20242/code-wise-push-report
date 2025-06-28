@@ -154,7 +154,7 @@ def run_pr_logic(target_selecionado, pushed_branch):
 
     # Compara com a branch que está sendo enviada pelo 'git push'
     if current_branch != pushed_branch:
-        print(f"ℹ️  Hook ignorado: Você está na branch '{current_branch}', mas o push é para a branch '{pushed_branch}'. Nenhuma ação será tomada.", file=sys.stderr)
+        print(f" ⚠️ Hook de Push ignorado: Você está na branch '{current_branch}', mas o push é para a branch '{pushed_branch}'. Push será feito sem o Hook.", file=sys.stderr)
         sys.exit(0)  # Sai do script com sucesso, sem fazer nada.
     # --- FIM DA NOVA VALIDAÇÃO ---
 
