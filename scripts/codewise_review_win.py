@@ -284,16 +284,38 @@ def run_pr_logic(target_selecionado, pushed_branch):
 def main_pr_origin():
     """Ponto de entrada para criar um PR no 'origin'."""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--pushed-branch", required=True, type=str, help="A branch que está sendo enviada.")
+    parser.add_argument("--pushed-branch", required=False, type=str, help="A branch que está sendo enviada.")
     args = parser.parse_args()
-    run_pr_logic(target_selecionado="origin", pushed_branch=args.pushed_branch)
+
+    if args.pushed_branch:
+        pushed_branch = args.pushed_branch
+    else:
+        # Uso manual: detecta branch atual
+        try:
+            pushed_branch = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], encoding='utf-8').strip()
+        except Exception as e:
+            sys.exit(f"❌ Erro ao detectar a branch atual: {e}")
+
+    run_pr_logic(target_selecionado="origin", pushed_branch=pushed_branch)
+
 
 def main_pr_upstream():
     """Ponto de entrada para criar um PR no 'upstream'."""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--pushed-branch", required=True, type=str, help="A branch que está sendo enviada.")
+    parser.add_argument("--pushed-branch", required=False, type=str, help="A branch que está sendo enviada.")
     args = parser.parse_args()
-    run_pr_logic(target_selecionado="upstream", pushed_branch=args.pushed_branch)
+
+    if args.pushed_branch:
+        pushed_branch = args.pushed_branch
+    else:
+        # Uso manual: detecta branch atual
+        try:
+            pushed_branch = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], encoding='utf-8').strip()
+        except Exception as e:
+            sys.exit(f"❌ Erro ao detectar a branch atual: {e}")
+
+    run_pr_logic(target_selecionado="upstream", pushed_branch=pushed_branch)
+
 
 
 def main_pr_interactive():
