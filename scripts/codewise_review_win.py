@@ -265,7 +265,7 @@ def run_pr_logic(target_selecionado, pushed_branch):
 
                 print("\n⚠️ AVISO: Não foi possível criar o Pull Request automaticamente.", file=sys.stderr)
                 print("   Isso é normal no primeiro push para uma nova branch.", file=sys.stderr)
-                print("   O seu 'git push' para o 'origin' continuará normalmente.", file=sys.stderr)
+                print("   O seu git push continuará normalmente.", file=sys.stderr)
                 print("   Após o push, rode 'codewise-pr' manualmente para criar o PR para o 'upstream'.", file=sys.stderr)
                 if os.path.exists(temp_analise_path):
                     os.remove(temp_analise_path)
