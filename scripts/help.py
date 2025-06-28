@@ -31,6 +31,7 @@ Ferramenta para análise de código, documentação automática e geração de P
 caso tenha um remoto upstream configurado você pode trocar aonde será criado o PR entre ele e o origin com esse comando também.⚠️
 
 -  **LEMBRE-SE DE CONFIGURAR O .env COM SUA CHAVE DO GEMINI.**
+-  Se estiver em um novo Repositório que você nunca trabalhou, você tem que configura-lo corretamente dando push inicial para a ferramenta funcionar.
 -  Se você estiver apenas na branch main (sem commits ou sem branch separada), **o PR não poderá ser criado**, pois não há base de comparação.
 
 """)

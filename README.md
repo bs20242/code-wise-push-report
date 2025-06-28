@@ -108,6 +108,7 @@ origin: Deve apontar para o seu fork pessoal do repositório.
 
 upstream: (caso você adicione ao repositório)Deve apontar para o repositório principal do qual você fez o fork.
 
+**Caso você comece um repositório novo totalmente zerado, você tem que dar um push inicial com "git push --no-verify" antes de usar a ferramenta para que o GH CLI funcione corretamente ao criar os Pull Requests**
 
 #### 2.4 Agora apenas uma vez > Ative a Automação no Repositório com um comando.
 Na raiz do projeto onde também está a pasta .git use:

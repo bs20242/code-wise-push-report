@@ -144,8 +144,20 @@ def main_lint():
 # ===================================================================
 # LÓGICA DO COMANDO 'codewise-pr' (PARA PRE-PUSH)
 # ===================================================================
-def run_pr_logic(target_selecionado):
+
+def run_pr_logic(target_selecionado, pushed_branch):
     """Função principal que contém toda a lógica de criação de PR."""
+
+    # --- NOVA VALIDAÇÃO ---
+    # Pega a branch em que o usuário está agora
+    current_branch = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], text=True).strip()
+
+    # Compara com a branch que está sendo enviada pelo 'git push'
+    if current_branch != pushed_branch:
+        print(f"ℹ️  Hook ignorado: Você está na branch '{current_branch}', mas o push é para a branch '{pushed_branch}'. Nenhuma ação será tomada.", file=sys.stderr)
+        sys.exit(0)  # Sai do script com sucesso, sem fazer nada.
+    # --- FIM DA NOVA VALIDAÇÃO ---
+
     if not shutil.which("gh"):
         print("❌ Erro: GitHub CLI ('gh') não foi encontrado no seu sistema.", file=sys.stderr)
         print("   Por favor, instale-a a partir de: https://cli.github.com/", file=sys.stderr)
@@ -185,15 +197,14 @@ def run_pr_logic(target_selecionado):
         head_branch_completa = f"{origin_slug.split('/')[0]}:{current_branch}"
         repo_alvo_pr = obter_repo_slug(target_selecionado, repo_path)
 
-
         print("\n--- 🤖 Executando IA para documentação do PR ---", file=sys.stderr)
 
         titulo_bruto = run_codewise_mode("titulo", repo_path, current_branch)
-        titulo_final = "" # Inicializa a variável
+        titulo_final = ""  # Inicializa a variável
         if titulo_bruto:
             titulo_final = extrair_titulo_valido(titulo_bruto) or f"feat: Modificações da branch {current_branch}"
             print(f" ✅ Título gerado: {titulo_final}", file=sys.stderr)
-        
+
         descricao = run_codewise_mode("descricao", repo_path, current_branch)
         if descricao:
             print("\n ✅ Descrição gerada:", file=sys.stderr)
@@ -202,15 +213,15 @@ def run_pr_logic(target_selecionado):
             print("-" * 40, file=sys.stderr)
 
         analise_tecnica = run_codewise_mode("analise", repo_path, current_branch)
-        
+
         if not all([titulo_final, descricao, analise_tecnica]):
             sys.exit("❌ Falha ao gerar um ou mais textos necessários da IA.")
- 
 
         temp_analise_path = os.path.join(repo_path, ".codewise_analise_temp.txt")
-        with open(temp_analise_path, "w", encoding='utf-8') as f: f.write(analise_tecnica)
-        pr_numero = obter_pr_aberto_para_branch(current_branch, repo_path, repo_alvo_pr)
+        with open(temp_analise_path, "w", encoding='utf-8') as f:
+            f.write(analise_tecnica)
 
+        pr_numero = obter_pr_aberto_para_branch(current_branch, repo_path, repo_alvo_pr)
 
         if pr_numero:
             print(f"⚠️ PR #{pr_numero} já existente. Acrescentando nova análise...", file=sys.stderr)
@@ -221,7 +232,11 @@ def run_pr_logic(target_selecionado):
                 )
                 descricao_antiga = json.loads(descricao_antiga_raw).get("body", "")
                 timestamp = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-                nova_entrada_descricao = (f"\n\n---\n\n" f"**🔄 Atualização em {timestamp}**\n\n" f"{descricao}")
+                nova_entrada_descricao = (
+                    f"\n\n---\n\n"
+                    f"**🔄 Atualização em {timestamp}**\n\n"
+                    f"{descricao}"
+                )
                 body_final = descricao_antiga + nova_entrada_descricao
                 subprocess.run(["gh", "pr", "edit", str(pr_numero), "--title", titulo_final, "--body", body_final, "--repo", repo_alvo_pr], check=False, cwd=repo_path)
                 print(f"✅ Descrição do PR #{pr_numero} atualizada com novas informações.")
@@ -231,7 +246,11 @@ def run_pr_logic(target_selecionado):
         else:
             print("🆕 Nenhum PR aberto. Criando Pull Request...", file=sys.stderr)
             try:
-                comando_pr = ["gh", "pr", "create", "--repo", repo_alvo_pr, "--base", base_branch_target, "--head", head_branch_completa, "--title", titulo_final, "--body", descricao]
+                comando_pr = [
+                    "gh", "pr", "create", "--repo", repo_alvo_pr,
+                    "--base", base_branch_target, "--head", head_branch_completa,
+                    "--title", titulo_final, "--body", descricao
+                ]
                 result = subprocess.run(comando_pr, check=True, capture_output=True, text=True, encoding='utf-8', cwd=repo_path)
                 pr_url = result.stdout.strip()
                 match = re.search(r"/pull/(\d+)", pr_url)
@@ -241,7 +260,8 @@ def run_pr_logic(target_selecionado):
                     raise Exception(f"Não foi possível extrair o número do PR da URL: {pr_url}")
                 print(f"✅ PR #{pr_numero} criado: {pr_url}", file=sys.stderr)
             except Exception as e:
-                if os.path.exists(temp_analise_path): os.remove(temp_analise_path)
+                if os.path.exists(temp_analise_path):
+                    os.remove(temp_analise_path)
                 sys.exit(f"❌ Falha ao criar PR: {e}")
 
         if pr_numero:
@@ -260,13 +280,20 @@ def run_pr_logic(target_selecionado):
             print(" Restaurando nome do remote 'upstream'...", file=sys.stderr)
             subprocess.run(["git", "remote", "rename", "upstream_temp", "upstream"], cwd=repo_path, check=True, capture_output=True)
 
+
 def main_pr_origin():
     """Ponto de entrada para criar um PR no 'origin'."""
-    run_pr_logic(target_selecionado="origin")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--pushed-branch", required=True, type=str, help="A branch que está sendo enviada.")
+    args = parser.parse_args()
+    run_pr_logic(target_selecionado="origin", pushed_branch=args.pushed_branch)
 
 def main_pr_upstream():
     """Ponto de entrada para criar um PR no 'upstream'."""
-    run_pr_logic(target_selecionado="upstream")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--pushed-branch", required=True, type=str, help="A branch que está sendo enviada.")
+    args = parser.parse_args()
+    run_pr_logic(target_selecionado="upstream", pushed_branch=args.pushed_branch)
 
 
 def main_pr_interactive():

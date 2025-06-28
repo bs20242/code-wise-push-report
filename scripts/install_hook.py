@@ -20,9 +20,7 @@ echo "--- [HOOK PRE-COMMIT CodeWise CONCLUÍDO] ---"
 exit 0
 """
 def verificar_remote_existe(remote_name):
-    """Verifica se um remote com o nome especificado existe."""
     try:
-        # Assumimos que o comando roda do diretório raiz do repo
         repo_path = os.getcwd() 
         remotes = subprocess.check_output(["git", "remote"], cwd=repo_path, text=True, encoding='utf-8')
         return remote_name in remotes.split()
@@ -91,12 +89,23 @@ def main():
                     print("\nInstalação do hook pre-push cancelada.")
                     sys.exit(1)
         
-        # Cria o conteúdo do hook com o comando escolhido
+
+        # SUBSTITUA a criação desta variável
         pre_push_content_dinamico = f"""#!/bin/sh
 set -e
-echo "--- [HOOK PRE-PUSH CodeWise ATIVADO (Alvo: {push_command.split('-')[-1]})] ---"
-{push_command}
-echo "--- [HOOK PRE-PUSH CodeWise CONCLUÍDO] ---"
+
+# Lê a entrada padrão para descobrir qual branch está sendo enviada
+while read local_ref local_sha remote_ref remote_sha
+do
+    # Extrai o nome simples da branch (ex: 'main' de 'refs/heads/main')
+    pushed_branch=$(basename "$local_ref")
+
+    # Executa o comando Python, passando a branch como um argumento
+    echo "--- [HOOK PRE-PUSH CodeWise ATIVADO (Alvo: {push_command.split('-')[-1]})] ---"
+    {push_command} --pushed-branch "$pushed_branch"
+    echo "--- [HOOK PRE-PUSH CodeWise CONCLUÍDO] ---"
+done
+
 exit 0
 """
         install_hook('pre-push', pre_push_content_dinamico, repo_root)
