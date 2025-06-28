@@ -19,6 +19,7 @@ codewise-lint
 echo "--- [HOOK PRE-COMMIT CodeWise CONCLUÍDO] ---"
 exit 0
 """
+
 def verificar_remote_existe(remote_name):
     try:
         repo_path = os.getcwd() 
@@ -32,7 +33,7 @@ def install_hook(hook_name, hook_content, repo_root):
     if not os.path.isdir(hooks_dir):
         print(f"❌ Erro: Diretório de hooks do Git não encontrado em '{hooks_dir}'.", file=sys.stderr)
         return False
-    
+
     hook_path = os.path.join(hooks_dir, hook_name)
     try:
         with open(hook_path, 'w', newline='\n') as f:
@@ -54,18 +55,15 @@ def main():
 
     print("🚀 Iniciando configuração de hooks do CodeWise...")
     repo_root = os.getcwd()
-    
+
     if not any([args.commit, args.push, args.all]):
         print("Nenhum hook especificado. Use --commit, --push, ou --all.", file=sys.stderr)
         sys.exit(1)
 
-
     if args.commit or args.all:
         install_hook('pre-commit', PRE_COMMIT_CONTENT, repo_root)
 
-
     if args.push or args.all:
-        # Lista todos os remotes
         try:
             remotes_raw = subprocess.check_output(["git", "remote"], cwd=repo_root, text=True, encoding='utf-8')
             remotes = [r.strip() for r in remotes_raw.splitlines() if r.strip()]
@@ -84,7 +82,12 @@ def main():
                 escolha = input(f"Escolha o remote padrão para o pre-push hook [1-{len(remotes)}]: ").strip()
                 if escolha.isdigit() and 1 <= int(escolha) <= len(remotes):
                     remote_escolhido = remotes[int(escolha) - 1]
-                    push_command = f"codewise-pr --target {remote_escolhido}"
+                    if remote_escolhido == "origin":
+                        push_command = "codewise-pr-origin"
+                    elif remote_escolhido == "upstream":
+                        push_command = "codewise-pr-upstream"
+                    else:
+                        push_command = f"codewise-pr --target {remote_escolhido}"
                     break
                 else:
                     print("Opção inválida. Digite um número válido.")
@@ -92,19 +95,13 @@ def main():
                 print("\nInstalação do hook pre-push cancelada.")
                 sys.exit(1)
 
-        
-
         pre_push_content_dinamico = f"""#!/bin/sh
 set -e
 
-# Lê a entrada padrão para descobrir qual branch está sendo enviada
 while read local_ref local_sha remote_ref remote_sha
 do
-    # Extrai o nome simples da branch (ex: 'main' de 'refs/heads/main')
     pushed_branch=$(basename "$local_ref")
-
-    # Executa o comando Python, passando a branch como um argumento
-    echo "--- [HOOK PRE-PUSH CodeWise ATIVADO (Alvo: {push_command.split('-')[-1]})] ---"
+    echo "--- [HOOK PRE-PUSH CodeWise ATIVADO (Alvo: {remote_escolhido})] ---"
     {push_command} --pushed-branch "$pushed_branch"
     echo "--- [HOOK PRE-PUSH CodeWise CONCLUÍDO] ---"
 done
