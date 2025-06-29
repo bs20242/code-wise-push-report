@@ -21,7 +21,19 @@ Antes de começar, garanta que você tenha as seguintes ferramentas instaladas e
 
 1.  **Python** (versão 3.11 ou superior).
 2.  **Git**.
-3.  **GitHub CLI (`gh`)**ODKSAPODKASPODKASOPDKAOPSDK
+3.  **GitHub CLI (`gh`)**: Após instalar em (https://cli.github.com), logue com sua conta do GitHub executando `gh auth login` no seu terminal (só precisa fazer isso uma vez por PC).
+---
+
+### Passo 2: Configurando Seu Repositório
+
+**Para cada novo Repositório em que você desejar usar o CodeWise, siga os passos abaixo.**
+ 
+"*O ideal é sempre criar um ambiente virtual na pasta raiz do novo repositório para evitar conflitos das dependências.*"
+
+---
+#### 2.1 Crie e Utilize um Ambiente Virtual
+
+Para evitar conflitos com outros projetos Python, use um ambiente virtual (`venv`).
 
 * **Para Criar o Ambiente:**
 
